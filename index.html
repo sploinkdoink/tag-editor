@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Local File Tag Editor</title>
+<meta name="theme-color" content="#1db954">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/browser-id3-writer@4.4.0/dist/browser-id3-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
+<style>
+:root{--g1:#c9f5dc;--g2:#ddd0ff;--g3:#ffd6e8;--card:rgba(255,255,255,.62);--field:rgba(255,255,255,.85);--text:#15171a;--muted:#5a5f66;--line:rgba(0,0,0,.09);--shadow:0 10px 30px rgba(80,60,160,.15);--accent:#1db954;--accent2:#12c7b0;--accent3:#8b5cf6;--accent-text:#04210f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--g1:#0d4a32;--g2:#26124f;--g3:#0a0a14;--card:rgba(24,22,38,.62);--field:rgba(255,255,255,.07);--text:#f5f5f7;--muted:#a9a9b8;--line:rgba(255,255,255,.12);--shadow:0 10px 34px rgba(0,0,0,.45)}}
+:root[data-theme="dark"]{--g1:#0d4a32;--g2:#26124f;--g3:#0a0a14;--card:rgba(24,22,38,.62);--field:rgba(255,255,255,.07);--text:#f5f5f7;--muted:#a9a9b8;--line:rgba(255,255,255,.12);--shadow:0 10px 34px rgba(0,0,0,.45)}
+html{min-height:100%;background:var(--g2)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(135deg,var(--g1) 0%,var(--g2) 55%,var(--g3) 100%) fixed;color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:480px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.9rem;line-height:1.15;margin:0 0 6px;font-weight:800;letter-spacing:-.02em;background:linear-gradient(90deg,var(--accent),var(--accent2) 45%,var(--accent3));-webkit-background-clip:text;background-clip:text;color:transparent}
+h1 .em{-webkit-text-fill-color:initial;margin-right:6px}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+p.sub{color:var(--muted);margin:0 0 18px;font-size:.92rem}
+.card{background:var(--card);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+@media (prefers-reduced-motion:no-preference){.card{animation:rise .5s ease both}.card:nth-of-type(2){animation-delay:.1s}}
+label{display:block;font-size:.8rem;color:var(--muted);margin:12px 0 4px}
+label:first-child{margin-top:0}
+input[type=text]{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--field);color:var(--text);font-size:1rem;transition:box-shadow .2s}
+input[type=text]:focus{outline:none;box-shadow:0 0 0 3px var(--accent2)}
+input[type=file]{width:100%;font-size:.9rem;color:var(--muted)}
+input[type=file]::file-selector-button{margin-right:10px;padding:9px 16px;border:0;border-radius:999px;background:linear-gradient(90deg,var(--accent3),var(--accent2));color:#fff;font-weight:700;font-size:.9rem}
+.cover{display:flex;gap:14px;align-items:center}
+#preview{width:104px;height:104px;border-radius:16px;border:2px dashed var(--line);object-fit:cover;background:var(--field);flex:none;box-shadow:var(--shadow)}
+.hint{font-size:.8rem;color:var(--muted);margin-top:6px}
+.row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.row .n{width:1.6rem;color:var(--muted);font-size:.85rem;text-align:right;flex:none}
+.row .ext{font-size:.7rem;color:var(--muted);flex:none;text-transform:uppercase}
+.chk{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:.9rem;color:var(--text)}
+button{width:100%;padding:16px;border:0;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:var(--accent-text);font-size:1.05rem;font-weight:800;box-shadow:0 8px 22px rgba(29,185,84,.4);transition:transform .15s,box-shadow .15s}
+button:active:not(:disabled){transform:scale(.97)}
+button:disabled{opacity:.4;box-shadow:none}
+#msg{margin-top:12px;font-size:.9rem;color:var(--muted);min-height:1.4em}
+</style>
+</head>
+<body>
+<main>
+<h1><span class="em">🎧</span>Local File Tag Editor</h1>
+<p class="sub">Tag one song or a whole album. MP3, M4A, WAV and FLAC files work; non-MP3 files are converted to MP3. Everything stays on your phone.</p>
+
+<div class="card">
+<label for="audio">1. Pick your song(s)</label>
+<input id="audio" type="file" multiple accept="audio/*,.mp3,.m4a,.wav,.flac">
+<div id="list"></div>
+<div class="chk" id="numWrap" hidden><input id="num" type="checkbox" checked><label for="num" style="margin:0;color:inherit;font-size:inherit">Number tracks in this order</label></div>
+<div class="chk" id="zipWrap" hidden><input id="zip" type="checkbox"><label for="zip" style="margin:0;color:inherit;font-size:inherit">Bundle into one .zip</label></div>
+</div>
+
+<div class="card">
+<label for="artist">Artist (applies to all)</label>
+<input id="artist" type="text" autocomplete="off">
+<label for="album">Album (applies to all)</label>
+<input id="album" type="text" autocomplete="off">
+<label for="img">Album cover (applies to all)</label>
+<div class="cover">
+<img id="preview" alt="Cover preview">
+<input id="img" type="file" accept="image/*">
+</div>
+</div>
+
+<button id="save" disabled>Save tagged MP3s</button>
+<div id="msg"></div>
+<div class="hint">Files are saved to your Downloads folder, where Spotify can find them.</div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let tracks = [], coverBuf = null;
+const isMp3 = f => /\.mp3$/i.test(f.name) || f.type === "audio/mpeg";
+function msg(t){ $("msg").textContent = t; }
+const stem = n => n.replace(/\.[^.]+$/, "");
+const ext = n => (n.match(/\.([^.]+)$/) || [, "audio"])[1];
+
+function renderList(){
+  const L = $("list"); L.textContent = "";
+  tracks.forEach((t, i) => {
+    const r = document.createElement("div"); r.className = "row";
+    const n = document.createElement("span"); n.className = "n"; n.textContent = i + 1;
+    const inp = document.createElement("input"); inp.type = "text"; inp.value = t.title; inp.setAttribute("aria-label", "Song title " + (i + 1));
+    inp.addEventListener("input", () => { t.title = inp.value; });
+    const x = document.createElement("span"); x.className = "ext"; x.textContent = ext(t.file.name);
+    r.append(n, inp, x); L.appendChild(r);
+  });
+  $("numWrap").hidden = tracks.length < 2;
+  $("zipWrap").hidden = tracks.length < 2;
+  $("save").disabled = !tracks.length;
+}
+
+$("audio").addEventListener("change", e => {
+  tracks = [...e.target.files].map(f => ({ file: f, title: stem(f.name) }));
+  renderList();
+  msg(tracks.length ? "Loaded " + tracks.length + " file" + (tracks.length > 1 ? "s" : "") + "." : "");
+});
+
+$("img").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const url = URL.createObjectURL(f), im = new Image();
+  im.onload = () => {
+    const s = Math.min(1, 1000 / Math.max(im.width, im.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
+    c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+    c.toBlob(async b => { coverBuf = await b.arrayBuffer(); $("preview").src = URL.createObjectURL(b); URL.revokeObjectURL(url); }, "image/jpeg", 0.9);
+  };
+  im.src = url;
+});
+
+// Decode any browser-supported audio and encode it as a 192 kbps MP3.
+async function toMp3(buf, label){
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  const ctx = new Ctx();
+  let ab;
+  try { ab = await ctx.decodeAudioData(buf.slice(0)); }
+  finally { ctx.close(); }
+  const ch = Math.min(2, ab.numberOfChannels);
+  const enc = new lamejs.Mp3Encoder(ch, ab.sampleRate, 192);
+  const i16 = f => { const o = new Int16Array(f.length); for (let i = 0; i < f.length; i++) { const s = Math.max(-1, Math.min(1, f[i])); o[i] = s < 0 ? s * 0x8000 : s * 0x7FFF; } return o; };
+  const Lc = i16(ab.getChannelData(0)), Rc = ch > 1 ? i16(ab.getChannelData(1)) : null;
+  const parts = [], step = 1152 * 20;
+  for (let i = 0, k = 0; i < Lc.length; i += step, k++) {
+    const l = Lc.subarray(i, i + step);
+    const out = ch > 1 ? enc.encodeBuffer(l, Rc.subarray(i, i + step)) : enc.encodeBuffer(l);
+    if (out.length) parts.push(new Uint8Array(out));
+    if (k % 20 === 0) { msg("Converting " + label + " " + Math.round(i / Lc.length * 100) + "%"); await new Promise(r => setTimeout(r)); }
+  }
+  const end = enc.flush(); if (end.length) parts.push(new Uint8Array(end));
+  return new Blob(parts).arrayBuffer();
+}
+
+const CRC_T = (() => { const t = []; for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t.push(c >>> 0); } return t; })();
+function crc32(b){ let c = -1; for (let i = 0; i < b.length; i++) c = (c >>> 8) ^ CRC_T[(c ^ b[i]) & 255]; return (c ^ -1) >>> 0; }
+
+// Multi-file ZIP, no compression, so each MP3 comes out untouched.
+function makeZip(files){
+  const enc = new TextEncoder(), chunks = [], central = [];
+  let off = 0;
+  for (const f of files) {
+    const nm = enc.encode(f.name), crc = crc32(f.data), n = f.data.length;
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+    lh.setUint16(12, 0x21, true); lh.setUint32(14, crc, true); lh.setUint32(18, n, true); lh.setUint32(22, n, true); lh.setUint16(26, nm.length, true);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+    ch.setUint16(14, 0x21, true); ch.setUint32(16, crc, true); ch.setUint32(20, n, true); ch.setUint32(24, n, true); ch.setUint16(28, nm.length, true); ch.setUint32(42, off, true);
+    chunks.push(lh, nm, f.data); central.push(ch, nm);
+    off += 30 + nm.length + n;
+  }
+  const csize = central.reduce((s, p) => s + (p.byteLength !== undefined ? p.byteLength : p.length), 0);
+  const eo = new DataView(new ArrayBuffer(22));
+  eo.setUint32(0, 0x06054b50, true); eo.setUint16(8, files.length, true); eo.setUint16(10, files.length, true);
+  eo.setUint32(12, csize, true); eo.setUint32(16, off, true);
+  return new Blob([...chunks, ...central, eo]);
+}
+
+function saveBlob(blob, name){ const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000); }
+
+$("save").addEventListener("click", async () => {
+  if (!tracks.length) return;
+  if (typeof ID3Writer === "undefined") { msg("The tagging library didn\u2019t load. Check your connection and reload the page."); return; }
+  const artist = $("artist").value.trim(), album = $("album").value.trim(), number = !$("numWrap").hidden && $("num").checked;
+  $("save").disabled = true;
+  try {
+    const out = [], used = new Set();
+    for (let i = 0; i < tracks.length; i++) {
+      const t = tracks[i], label = (i + 1) + "/" + tracks.length;
+      msg("Reading " + label + "\u2026");
+      let buf = await t.file.arrayBuffer();
+      if (!isMp3(t.file)) {
+        if (typeof lamejs === "undefined") throw new Error("The MP3 converter didn\u2019t load. Reload the page.");
+        buf = await toMp3(buf, label);
+      }
+      const title = t.title.trim() || stem(t.file.name);
+      const w = new ID3Writer(buf);
+      w.setFrame("TIT2", title);
+      if (artist) { w.setFrame("TPE1", [artist]); w.setFrame("TPE2", artist); }
+      if (album) w.setFrame("TALB", album);
+      if (number) w.setFrame("TRCK", String(i + 1));
+      if (coverBuf) w.setFrame("APIC", { type: 3, data: coverBuf, description: "Cover" });
+      w.addTag();
+      let name = (number ? String(i + 1).padStart(2, "0") + " " : "") + title.replace(/[\\/:*?"<>|]/g, "");
+      let nm = name + ".mp3", c = 2;
+      while (used.has(nm)) nm = name + " (" + c++ + ").mp3";
+      used.add(nm);
+      out.push({ name: nm, data: new Uint8Array(w.arrayBuffer) });
+    }
+    const zname = (album || (tracks.length === 1 ? out[0].name.replace(/\.mp3$/, "") : "tagged-songs")).replace(/[\\/:*?"<>|]/g, "");
+    if ($("zip").checked && out.length > 1) {
+      saveBlob(makeZip(out), zname + ".zip");
+      msg("Saved " + zname + ".zip. Open it in your Files app and tap Extract.");
+    } else {
+      for (const f of out) { saveBlob(new Blob([f.data], { type: "audio/mpeg" }), f.name); await new Promise(r => setTimeout(r, 500)); }
+      msg("Saved " + out.length + " MP3" + (out.length > 1 ? "s" : "") + " to your Downloads folder.");
+    }
+  } catch (err) {
+    msg(err && err.code === "declined" ? "Save cancelled." : "Something went wrong: " + ((err && err.message) || err));
+  } finally { $("save").disabled = !tracks.length; }
+});
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
