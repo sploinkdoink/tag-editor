@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Local File Tag Editor</title>
 <meta name="theme-color" content="#1db954">
+<script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -18,7 +19,7 @@ html{min-height:100%;background:var(--g2)}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;background:linear-gradient(135deg,var(--g1) 0%,var(--g2) 55%,var(--g3) 100%) fixed;color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 main{max-width:480px;margin:0 auto;padding:20px 16px 40px}
-h1{font-size:1.9rem;line-height:1.15;margin:0 0 6px;font-weight:800;letter-spacing:-.02em;background:linear-gradient(90deg,var(--accent),var(--accent2) 45%,var(--accent3));-webkit-background-clip:text;background-clip:text;color:transparent}
+h1{font-size:1.9rem;line-height:1.3;padding-bottom:.12em;margin:0 0 6px;font-weight:800;letter-spacing:-.02em;background:linear-gradient(90deg,var(--accent),var(--accent2) 45%,var(--accent3));-webkit-background-clip:text;background-clip:text;color:transparent}
 h1 .em{-webkit-text-fill-color:initial;margin-right:6px}
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 p.sub{color:var(--muted);margin:0 0 18px;font-size:.92rem}
@@ -28,49 +29,105 @@ label{display:block;font-size:.8rem;color:var(--muted);margin:12px 0 4px}
 label:first-child{margin-top:0}
 input[type=text]{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--field);color:var(--text);font-size:1rem;transition:box-shadow .2s}
 input[type=text]:focus{outline:none;box-shadow:0 0 0 3px var(--accent2)}
-input[type=file]{width:100%;font-size:.9rem;color:var(--muted)}
-input[type=file]::file-selector-button{margin-right:10px;padding:9px 16px;border:0;border-radius:999px;background:linear-gradient(90deg,var(--accent3),var(--accent2));color:#fff;font-weight:700;font-size:.9rem}
 .cover{display:flex;gap:14px;align-items:center}
+#ph{width:104px;height:104px;border-radius:16px;border:2px dashed var(--line);background:var(--field);flex:none;box-shadow:var(--shadow)}
+.file{position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0)}
+label.pick{display:inline-block;margin:0;padding:11px 20px;border-radius:999px;background:linear-gradient(120deg,var(--accent3),var(--accent2),var(--accent3));background-size:200% 100%;color:#fff;font-size:.92rem;font-weight:800;letter-spacing:.01em;box-shadow:0 6px 16px rgba(139,92,246,.4);cursor:pointer;transition:background-position .4s,transform .15s;-webkit-tap-highlight-color:transparent;user-select:none}
+label.pick:hover{background-position:100% 0}
+label.pick:active{transform:scale(.96)}
+.file:focus-visible+label.pick{box-shadow:0 0 0 3px var(--card),0 0 0 6px var(--accent2)}
+.fname{display:block;margin-top:8px;font-size:.85rem;color:var(--muted);word-break:break-all}
 #preview{width:104px;height:104px;border-radius:16px;border:2px dashed var(--line);object-fit:cover;background:var(--field);flex:none;box-shadow:var(--shadow)}
 .hint{font-size:.8rem;color:var(--muted);margin-top:6px}
 .row{display:flex;gap:8px;align-items:center;margin-top:8px}
 .row .n{width:1.6rem;color:var(--muted);font-size:.85rem;text-align:right;flex:none}
 .row .ext{font-size:.7rem;color:var(--muted);flex:none;text-transform:uppercase}
 .chk{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:.9rem;color:var(--text)}
-button{width:100%;padding:16px;border:0;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:var(--accent-text);font-size:1.05rem;font-weight:800;box-shadow:0 8px 22px rgba(29,185,84,.4);transition:transform .15s,box-shadow .15s}
+button{width:100%;padding:17px;border:0;border-radius:999px;background:linear-gradient(110deg,var(--accent),var(--accent2),var(--accent3),var(--accent));background-size:300% 100%;color:#fff;font-size:1.08rem;font-weight:800;letter-spacing:.02em;text-shadow:0 1px 2px rgba(0,0,0,.25);box-shadow:0 10px 26px rgba(29,185,84,.45);-webkit-appearance:none;appearance:none;outline:none;-webkit-tap-highlight-color:transparent;cursor:pointer;transition:transform .15s,box-shadow .2s}
+@media (prefers-reduced-motion:no-preference){button:not(:disabled){animation:flow 6s linear infinite}}
+@keyframes flow{to{background-position:300% 0}}
+button:hover:not(:disabled){box-shadow:0 14px 32px rgba(18,199,176,.55)}
+button:focus-visible{box-shadow:0 0 0 3px var(--card),0 0 0 6px var(--accent2)}
 button:active:not(:disabled){transform:scale(.97)}
 button:disabled{opacity:.4;box-shadow:none}
 #msg{margin-top:12px;font-size:.9rem;color:var(--muted);min-height:1.4em}
+.top{display:flex;justify-content:flex-end;margin-bottom:12px}
+.seg{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--field);border:1px solid var(--line)}
+.seg button:not(:disabled){width:auto;padding:7px 14px;border-radius:999px;background:transparent;background-size:auto;color:var(--muted);font-size:.8rem;font-weight:700;letter-spacing:0;text-shadow:none;box-shadow:none;animation:none}
+.seg button:hover:not(:disabled){box-shadow:none;color:var(--text)}
+.seg button[aria-pressed="true"]:not(:disabled),.seg button[aria-pressed="true"]:hover:not(:disabled){background:linear-gradient(120deg,var(--accent3),var(--accent2));background-size:100% 100%;color:#fff}
+.guide h2{font-size:1.15rem;margin:0 0 4px;font-weight:800}
+.guide .lead{font-size:.85rem;color:var(--muted);margin:0 0 12px}
+.gtabs{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--field);border:1px solid var(--line)}
+.gtabs button:not(:disabled){width:auto;padding:7px 16px;border-radius:999px;background:transparent;background-size:auto;color:var(--muted);font-size:.85rem;font-weight:700;letter-spacing:0;text-shadow:none;box-shadow:none;animation:none}
+.gtabs button:hover:not(:disabled){box-shadow:none;color:var(--text)}
+.gtabs button[aria-pressed="true"]:not(:disabled),.gtabs button[aria-pressed="true"]:hover:not(:disabled){background:linear-gradient(120deg,var(--accent3),var(--accent2));background-size:100% 100%;color:#fff}
+.step{display:flex;gap:12px;margin-top:16px}
+.num{flex:none;width:26px;height:26px;border-radius:50%;background:linear-gradient(120deg,var(--accent),var(--accent2));color:#fff;font-weight:800;font-size:.8rem;display:flex;align-items:center;justify-content:center}
+.step p{margin:2px 0 0;font-size:.9rem;line-height:1.4}
+.viz{margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--field);border:1px solid var(--line);font-size:.82rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.viz .sub2{color:var(--muted);font-size:.75rem}
+.ico{flex:none;width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent3),var(--accent2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.tg{margin-left:auto;flex:none;width:42px;height:24px;border-radius:999px;background:var(--accent);position:relative}
+.tg::after{content:"";position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff}
+.chip{padding:4px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-weight:700}
+.chip.hl{background:linear-gradient(120deg,var(--accent3),var(--accent2));color:#fff;border-color:transparent}
+.arr{color:var(--muted)}
+.tip{margin-top:16px;padding:10px 12px;border-radius:12px;background:var(--field);border:1px dashed var(--line);font-size:.82rem;color:var(--muted);line-height:1.4}
 </style>
 </head>
 <body>
 <main>
+<div class="top"><div class="seg" role="group" aria-label="Color theme">
+<button type="button" data-t="light" aria-pressed="false">Light</button>
+<button type="button" data-t="dark" aria-pressed="false">Dark</button>
+<button type="button" data-t="system" aria-pressed="true">System</button>
+</div></div>
 <h1><span class="em">🎧</span>Local File Tag Editor</h1>
-<p class="sub">Tag one song or a whole album. MP3, M4A, WAV and FLAC files work; non-MP3 files are converted to MP3. Everything stays on your phone.</p>
+<p class="sub">Add a title, artist, album and cover to your song. MP3, M4A, WAV and FLAC files work; other formats are converted to MP3. Everything stays on your device.</p>
 
 <div class="card">
-<label for="audio">1. Pick your song(s)</label>
-<input id="audio" type="file" multiple accept="audio/*,.mp3,.m4a,.wav,.flac">
+<label for="audio">1. Pick your song</label>
+<input id="audio" class="file" type="file" accept="audio/*,.mp3,.m4a,.wav,.flac"><label for="audio" class="pick">Choose song</label><span class="fname" id="audioName">No file chosen</span>
 <div id="list"></div>
-<div class="chk" id="numWrap" hidden><input id="num" type="checkbox" checked><label for="num" style="margin:0;color:inherit;font-size:inherit">Number tracks in this order</label></div>
-<div class="chk" id="zipWrap" hidden><input id="zip" type="checkbox"><label for="zip" style="margin:0;color:inherit;font-size:inherit">Bundle into one .zip</label></div>
 </div>
 
 <div class="card">
-<label for="artist">Artist (applies to all)</label>
+<label for="artist">Artist</label>
 <input id="artist" type="text" autocomplete="off">
-<label for="album">Album (applies to all)</label>
+<label for="album">Album</label>
 <input id="album" type="text" autocomplete="off">
-<label for="img">Album cover (applies to all)</label>
+<label for="img">Album cover</label>
 <div class="cover">
-<img id="preview" alt="Cover preview">
-<input id="img" type="file" accept="image/*">
+<div id="ph" aria-hidden="true"></div><img id="preview" alt="Cover preview" hidden>
+<div><input id="img" class="file" type="file" accept="image/*"><label for="img" class="pick">Choose image</label><span class="fname" id="imgName">No image chosen</span></div>
 </div>
 </div>
 
-<button id="save" disabled>Save tagged MP3s</button>
+<button id="save" disabled>⬇️ Save tagged MP3</button>
 <div id="msg"></div>
 <div class="hint">Files are saved to your Downloads folder, where Spotify can find them.</div>
+
+<div class="card guide" id="guide">
+<h2>After you save: add it to Spotify</h2>
+<p class="lead">Pick your phone. Menu names can differ slightly between app versions.</p>
+<div class="gtabs" role="group" aria-label="Phone type">
+<button type="button" data-g="ios" aria-pressed="true">iPhone</button>
+<button type="button" data-g="and" aria-pressed="false">Android</button>
+</div>
+<div id="g-ios">
+<div class="step"><div class="num">1</div><div><p>In Spotify, open your profile picture, then Settings and privacy, then Local Files. Switch on <b>Local audio files</b>.</p><div class="viz"><span class="chip">Profile picture</span><span class="arr">&rsaquo;</span><span class="chip">Settings and privacy</span><span class="arr">&rsaquo;</span><span class="chip hl">Local Files</span></div><div class="viz"><span>Local audio files</span><span class="tg" aria-label="On"></span></div></div></div>
+<div class="step"><div class="num">2</div><div><p>Open the <b>Files</b> app and find your saved MP3 in the Downloads folder.</p><div class="viz"><div class="ico">&#9834;</div><div><div>My song.mp3</div><div class="sub2">Files &rsaquo; Downloads</div></div></div></div></div>
+<div class="step"><div class="num">3</div><div><p>Press and hold the file and choose <b>Move</b> (or Copy). Then go to <b>Browse</b>, open <b>On My iPhone</b>, and choose the <b>Spotify</b> folder.</p><div class="viz"><span class="chip">Browse</span><span class="arr">&rsaquo;</span><span class="chip">On My iPhone</span><span class="arr">&rsaquo;</span><span class="chip hl">Spotify</span></div></div></div>
+<div class="step"><div class="num">4</div><div><p>Back in Spotify, open <b>Your Library</b>, tap the Playlists filter, and open <b>Local Files</b>.</p><div class="viz"><div class="ico">&#9834;</div><div><div>Local Files</div><div class="sub2">Playlist &middot; your song is inside</div></div></div></div></div>
+<div class="tip">Can&rsquo;t see the song? In Spotify, turn Local audio files off and on again to refresh. Deleting or reinstalling Spotify can also delete files in that folder, so keep a backup copy.</div></div>
+<div id="g-and" hidden>
+<div class="step"><div class="num">1</div><div><p>Save the tagged MP3 to your phone. The editor puts it in your <b>Downloads</b> folder, which Spotify can read.</p><div class="viz"><div class="ico">&#9834;</div><div><div>My song.mp3</div><div class="sub2">Downloads</div></div></div></div></div>
+<div class="step"><div class="num">2</div><div><p>In Spotify, open your profile picture, then Settings and privacy, then Local Files. Switch on <b>Show audio files from this device</b>.</p><div class="viz"><span class="chip">Profile picture</span><span class="arr">&rsaquo;</span><span class="chip">Settings and privacy</span><span class="arr">&rsaquo;</span><span class="chip hl">Local Files</span></div><div class="viz"><span>Show audio files from this device</span><span class="tg" aria-label="On"></span></div></div></div>
+<div class="step"><div class="num">3</div><div><p>Open <b>Your Library</b>, tap the Playlists filter, and open <b>Local Files</b>. Your song shows with its title, artist and album.</p><div class="viz"><div class="ico">&#9834;</div><div><div>Local Files</div><div class="sub2">Playlist &middot; your song is inside</div></div></div></div></div>
+<div class="tip">Can&rsquo;t see the song? Turn the setting off and on again to rescan, and check that the file is in Downloads or Music.</div></div>
+</div>
+
 </main>
 
 <script>
@@ -85,18 +142,16 @@ function renderList(){
   const L = $("list"); L.textContent = "";
   tracks.forEach((t, i) => {
     const r = document.createElement("div"); r.className = "row";
-    const n = document.createElement("span"); n.className = "n"; n.textContent = i + 1;
     const inp = document.createElement("input"); inp.type = "text"; inp.value = t.title; inp.setAttribute("aria-label", "Song title " + (i + 1));
     inp.addEventListener("input", () => { t.title = inp.value; });
     const x = document.createElement("span"); x.className = "ext"; x.textContent = ext(t.file.name);
-    r.append(n, inp, x); L.appendChild(r);
+    r.append(inp, x); L.appendChild(r);
   });
-  $("numWrap").hidden = tracks.length < 2;
-  $("zipWrap").hidden = tracks.length < 2;
   $("save").disabled = !tracks.length;
 }
 
 $("audio").addEventListener("change", e => {
+  $("audioName").textContent = e.target.files[0] ? e.target.files[0].name : "No file chosen";
   tracks = [...e.target.files].map(f => ({ file: f, title: stem(f.name) }));
   renderList();
   msg(tracks.length ? "Loaded " + tracks.length + " file" + (tracks.length > 1 ? "s" : "") + "." : "");
@@ -105,13 +160,14 @@ $("audio").addEventListener("change", e => {
 $("img").addEventListener("change", e => {
   const f = e.target.files[0];
   if (!f) return;
+  $("imgName").textContent = f.name;
   const url = URL.createObjectURL(f), im = new Image();
   im.onload = () => {
     const s = Math.min(1, 1000 / Math.max(im.width, im.height));
     const c = document.createElement("canvas");
     c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
     c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
-    c.toBlob(async b => { coverBuf = await b.arrayBuffer(); $("preview").src = URL.createObjectURL(b); URL.revokeObjectURL(url); }, "image/jpeg", 0.9);
+    c.toBlob(async b => { coverBuf = await b.arrayBuffer(); $("preview").src = URL.createObjectURL(b); $("preview").hidden = false; $("ph").hidden = true; URL.revokeObjectURL(url); }, "image/jpeg", 0.9);
   };
   im.src = url;
 });
@@ -168,7 +224,7 @@ function saveBlob(blob, name){ const a = document.createElement("a"); a.href = U
 $("save").addEventListener("click", async () => {
   if (!tracks.length) return;
   if (typeof ID3Writer === "undefined") { msg("The tagging library didn\u2019t load. Check your connection and reload the page."); return; }
-  const artist = $("artist").value.trim(), album = $("album").value.trim(), number = !$("numWrap").hidden && $("num").checked;
+  const artist = $("artist").value.trim(), album = $("album").value.trim(), number = false;
   $("save").disabled = true;
   try {
     const out = [], used = new Set();
@@ -195,17 +251,36 @@ $("save").addEventListener("click", async () => {
       out.push({ name: nm, data: new Uint8Array(w.arrayBuffer) });
     }
     const zname = (album || (tracks.length === 1 ? out[0].name.replace(/\.mp3$/, "") : "tagged-songs")).replace(/[\\/:*?"<>|]/g, "");
-    if ($("zip").checked && out.length > 1) {
-      saveBlob(makeZip(out), zname + ".zip");
-      msg("Saved " + zname + ".zip. Open it in your Files app and tap Extract.");
-    } else {
-      for (const f of out) { saveBlob(new Blob([f.data], { type: "audio/mpeg" }), f.name); await new Promise(r => setTimeout(r, 500)); }
-      msg("Saved " + out.length + " MP3" + (out.length > 1 ? "s" : "") + " to your Downloads folder.");
-    }
+    saveBlob(new Blob([out[0].data], { type: "audio/mpeg" }), out[0].name);
+    msg("Saved " + out[0].name + " to your Downloads folder.");
   } catch (err) {
     msg(err && err.code === "declined" ? "Save cancelled." : "Something went wrong: " + ((err && err.message) || err));
   } finally { $("save").disabled = !tracks.length; }
 });
+(function(){
+  const gb = [...document.querySelectorAll(".gtabs button")];
+  function show(g){
+    gb.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.g === g)));
+    document.getElementById("g-ios").hidden = g !== "ios";
+    document.getElementById("g-and").hidden = g !== "and";
+  }
+  gb.forEach(b => b.addEventListener("click", () => show(b.dataset.g)));
+  show(/Android/i.test(navigator.userAgent) ? "and" : "ios");
+})();
+(function(){
+  const btns = [...document.querySelectorAll(".seg button")];
+  let cur = "system";
+  try { cur = localStorage.getItem("theme") || "system"; } catch (e) {}
+  if (cur !== "light" && cur !== "dark") cur = "system";
+  function apply(t){
+    const r = document.documentElement;
+    if (t === "system") r.removeAttribute("data-theme"); else r.setAttribute("data-theme", t);
+    btns.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.t === t)));
+    try { if (t === "system") localStorage.removeItem("theme"); else localStorage.setItem("theme", t); } catch (e) {}
+  }
+  btns.forEach(b => b.addEventListener("click", () => apply(b.dataset.t)));
+  apply(cur);
+})();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
